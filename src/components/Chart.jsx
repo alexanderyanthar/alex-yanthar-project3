@@ -1,47 +1,67 @@
-import { useEffect, useRef } from "react";
-import { createChart } from "lightweight-charts";
+import React, { useEffect } from 'react';
+import { createChart } from 'lightweight-charts';
 
-const Chart = ({ historicalData }) => {
-    const chartContainerRef = useRef(null);
-    const chartInstanceRef = useRef(null);
+const Chart = ({ chartData }) => {
+  useEffect(() => {
+    if (chartData.length > 0) {
+      createChartWithData(chartData);
+    }
+  }, [chartData]);
 
-    useEffect(() => {
-        if (!chartInstanceRef.current) {
-            const chart = createChart(chartContainerRef.current, {
-                width: 800,
-                height: 500,
-            });
-            chartInstanceRef.current = chart;
+  const createChartWithData = (data) => {
+    const chartContainer = document.getElementById('chart-container');
+    chartContainer.innerHTML = ''; // Clear previous chart
 
-            const mainPane = chartInstanceRef.current.addPane();
+    const chart = createChart(chartContainer, {
+      autoSize: true,
+      localizationOptions: {
+        dateFormat: 'MMMM dd, yyyy',
+      },
+    });
 
-            const mainSeries = mainPane.addCandlestickSeries();
+    const formattedData = data.map(({ date, open, high, low, close }) => {
+      const time = new Date(date).getTime();
+      return {
+        time: time / 1000, // Divide by 1000 to convert milliseconds to seconds
+        open,
+        high,
+        low,
+        close,
+      };
+    });
 
-            mainSeries.applyOptions({
-                priceFormat: {
-                    type: 'price',
-                    precision: 2,
-                },
-            });
-        }
+    formattedData.sort((a, b) => a.time - b.time);
 
-        if (historicalData && historicalData.length > 0) {
-            const sortedData = historicalData.slice().sort((a, b) => a.time - b.time);
+    const candlestickSeries = chart.addCandlestickSeries();
 
-            const candleSeries = chartInstanceRef.current.mainSeries().priceScale().series();
-            candleSeries.setData(sortedData);
-        }
+    candlestickSeries.setData(formattedData);
 
-        return () => {
-            if (chartInstanceRef.current) {
-                chartInstanceRef.current.remove();
-            }
-        };
-    }, [historicalData])
+    // Get the time scale API
+    const timeScaleApi = chart.timeScale();
 
-  return (
-    <div ref={chartContainerRef} style={{ height: '500px' }}></div>
-  )
-}
+    // Customize the time scale
+    timeScaleApi.applyOptions({
+      timeVisible: true,
+      secondsVisible: false,
+    });
 
-export default Chart
+    timeScaleApi.subscribeVisibleTimeRangeChange(() => {
+      // Format the dates on the time scale
+      const visibleBars = timeScaleApi.getVisibleLogicalRange();
+      const fromDate = formattedData[visibleBars.from]?.date;
+      const toDate = formattedData[visibleBars.to]?.date;
+
+      if (fromDate && toDate) {
+        const formattedFromDate = new Date(fromDate).toLocaleDateString();
+        const formattedToDate = new Date(toDate).toLocaleDateString();
+        const formattedRange = `${formattedFromDate} - ${formattedToDate}`;
+
+        timeScaleApi.options().timeVisibleRangeLabel = formattedRange;
+      }
+    });
+  };
+
+  return <div id="chart-container"></div>;
+};
+
+export default Chart;
