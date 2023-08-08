@@ -40,3 +40,15 @@
 .read-the-docs {
   color: #888;
 }
+
+.App-main {
+  padding: 20px;
+  width: 98vh;
+  height: 70vh;
+  margin: 0 auto;
+}
+
+#chart-container {
+  width: 100%;
+  height: 100%;
+}
