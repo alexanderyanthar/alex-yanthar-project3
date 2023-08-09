@@ -6,13 +6,16 @@ import Footer from './components/Footer';
 import MainContent from './components/MainContent';
 
 function App() {
+  const [selectedCurrencyPair, setSelectedCurrencyPair] = useState('EUR/USD')
   const [chartData, setChartData] = useState([]);
   const apiKey = 'GEDZHAFMQCTPRQZN';
 
-  const fetchData = async () => {
+  const currencyPairs = ['EUR/USD', 'USD/CAD', 'USD/JPY', 'AUD/USD', 'GBP/USD', 'NZD/USD', 'USD/CHF'];
+
+  const fetchData = async (currencyPair) => {
     try {
       const response = await fetch(
-        `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=EUR&to_symbol=USD&apikey=${apiKey}`
+        `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=${currencyPair.substring(0, 3)}&to_symbol=${currencyPair.substring(4)}&outputsize=full&apikey=${apiKey}`
       );
       const data = await response.json();
 
@@ -38,13 +41,17 @@ function App() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(selectedCurrencyPair);
+  }, [selectedCurrencyPair]);
 
   return (
     <div className="App">
       <Header />
-      <MainContent chartData={chartData}/>
+      <MainContent 
+        chartData={chartData}
+        selectedCurrencyPair={selectedCurrencyPair}
+        currencyPairs={currencyPairs}
+        setSelectedCurrencyPair={setSelectedCurrencyPair} />
       <Footer />
     </div>
   );
