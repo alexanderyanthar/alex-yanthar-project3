@@ -1,7 +1,6 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
@@ -42,11 +41,16 @@
 }
 
 .App-main {
-  padding: 20px;
-  width: 98vh;
   height: 70vh;
   margin: 0 auto;
 }
+
+.App-header {
+  background-color: black;
+  color: white;
+  padding: 1rem 0;
+}
+
 
 #chart-container {
   width: 100%;
